@@ -7,7 +7,6 @@ init_log
 redirect_log win10.log
 redirect_stderr win10.log
 
-log ""
 log "Windows 10 VM"
 log ""
 
@@ -54,6 +53,8 @@ fi
 if [[ -n "$PCI_PASSTHROUGH" ]]; then
 	modprobe vfio || exit 2
 	modprobe vfio-pci || exit 2
+	modprobe -r kvm_intel
+	modprobe kvm_intel nested=1
 
 	source $SCRIPT_DIR/prompt/pci.sh
 fi
