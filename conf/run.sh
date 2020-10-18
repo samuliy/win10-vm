@@ -2,15 +2,24 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-DRIVER_CD=/home/samuliy/ISO/virtio-win-0.1.141.iso
-
 BOOT="
 -boot order=c
 "
 
-CD_DRIVE="
--drive file=$DRIVER_CD,index=2,media=cdrom
-"
+CD_INDEX=1
+for ISO in $SCRIPT_DIR/../cd-drives/*.iso ; do
+	if [[ -z "$CD_DEVICE_CREATED" ]]; then
+		CD_DRIVES="
+			-device ide-cd,bus=ide.0,unit=0,drive=drive-ide$CD_INDEX,id=ide0-0-0,bootindex=1
+		"
+		CD_DEVICE_CREATED=1
+	fi
+	CD_DRIVES="
+		$CD_DRIVES
+		-drive file=$ISO,index=$CD_INDEX,id=drive-ide$CD_INDEX,if=none,format=raw,readonly=on
+	"
+	CD_INDEX=$(($CD_INDEX+1))
+done
 
 MACHINE="
 -machine q35,accel=kvm,kernel_irqchip=on,mem-merge=off
@@ -31,8 +40,7 @@ $( $SCRIPT_DIR/../components/hard-drive.sh )
 $( $SCRIPT_DIR/../components/memory.sh )
 $( $SCRIPT_DIR/../components/usb.sh )
 $( $SCRIPT_DIR/../components/pci.sh )
-$CD_DRIVE
-$BOOT
+$CD_DRIVES
 "
 
 echo $CONF
