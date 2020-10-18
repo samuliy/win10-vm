@@ -31,12 +31,12 @@ else
 
 	detach_console # For GPU passthrough
 
-	for DEVICE in "${PCI_DEVICES[@]}"; do
+	for DEVICE in $PCI_DEVICES; do
 		bind_device $DEVICE vfio-pci
 		echo "-device vfio-pci,host=$DEVICE"
 	done
 
-	for DRIVER in "${PCI_DRIVERS[@]}"; do
+	for DRIVER in $PCI_DRIVERS; do
 		unbind_driver $DRIVER
 	done
 fi
