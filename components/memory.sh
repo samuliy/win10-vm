@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MEMORY="
-	-m 2048
+	-m 12288
 "
 
 echo $MEMORY
