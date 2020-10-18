@@ -19,7 +19,7 @@ for ARG; do
 		;;
 		--pci-passthrough)
 			log "Using PCI passthrough."
-			VGA_PASSTHROUGH=1
+			PCI_PASSTHROUGH=1
 		;;
 		--usb-passthrough)
 			log "Using USB passthrough."
