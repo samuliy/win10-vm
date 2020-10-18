@@ -32,8 +32,17 @@ else
 	detach_console # For GPU passthrough
 
 	for DEVICE in $PCI_DEVICES; do
+		DEVICE_CONFIG="-device vfio-pci,host=$DEVICE"
+
 		bind_device $DEVICE vfio-pci
-		echo "-device vfio-pci,host=$DEVICE"
+
+		if lspci | grep $DEVICE | grep -q VGA ; then
+			DEVICE_CONFIG="$DEVICE_CONFIG,multifunction=on"
+		fi
+
+		echo $DEVICE_CONFIG
+
+		unset DEVICE_CONFIG
 	done
 
 	for DRIVER in $PCI_DRIVERS; do
