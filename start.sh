@@ -59,12 +59,6 @@ if [[ -n "$PCI_PASSTHROUGH" ]]; then
 fi
 
 CONF=$( $SCRIPT_DIR/conf/run.sh )
-if [[ -n "$INSTALL" ]]; then
-	CONF="$CONF -boot order=dc"
-else
-	CONF="$CONF -boot order=c"
-fi
-
 CMD="qemu-system-x86_64 $CONF"
 log "$CMD"
 eval "$CMD"
