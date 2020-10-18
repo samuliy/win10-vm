@@ -15,19 +15,19 @@ for ARG; do
 	case $ARG in
 		--install)
 			log "Installing Windows 10."
-			INSTALL=1
+			export INSTALL=1
 		;;
 		--pci-passthrough)
 			log "Using PCI passthrough."
-			PCI_PASSTHROUGH=1
+			export PCI_PASSTHROUGH=1
 		;;
 		--usb-passthrough)
 			log "Using USB passthrough."
-			USB_PASSTHROUGH=1
+			export USB_PASSTHROUGH=1
 		;;
 		--hugepages)
 			log "Using Hugepages."
-			HUGEPAGES=1
+			export HUGEPAGES=1
 		;;
 	esac
 done
