@@ -83,17 +83,6 @@ function get_device_driver {
 }
 export -f get_device_driver
 
-function get_device_subsystem {
-	local DEVICE=$1
-	if [[ -n "$DEVICE" ]]; then
-		log "Getting subsystem for device $DEVICE."
-		SUBSYSTEM_DEVICE=$(lspci -vmmk -s $DEVICE | grep SDevice: | cut -f 2)
-		log "Device $DEVICE subsystem: $SUBSYSTEM_DEVICE."
-	fi
-	echo "$SUBSYSTEM_DEVICE"
-}
-export -f get_device_subsystem
-
 function prompt_pci_device_list {
 	local DEVICE_TYPE=$1
 
@@ -101,7 +90,7 @@ function prompt_pci_device_list {
 	declare -A DEVICES
 
 	ia_log ""
-	ia_log "List of $DEVICE_TYPE devices:"
+	ia_log "List of PCI devices:"
 	ia_log ""
 
 	while read -r DEVICE; do
@@ -110,7 +99,7 @@ function prompt_pci_device_list {
 		DEVICE_NUM=$((DEVICE_NUM + 1))
 	done <<< $(lspci | grep "$DEVICE_TYPE")
 
-	ia_log "Pick $DEVICE_TYPE device: "
+	ia_log "Pick PCI device: "
 	read -r INPUT
 
 	if [[ -n "$INPUT" ]]; then
