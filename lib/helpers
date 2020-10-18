@@ -35,7 +35,9 @@ function unbind_driver {
 	if [[ -n "$DRIVER" ]]; then
 		log "Unbinding driver $DRIVER."
 		if [[ "$DRIVER" = "nvidia" ]]; then
+			modprobe -r nouveau
 			modprobe -r nvidia_drm
+			modprobe -r nvidia_modeset
 		fi
 		modprobe -r "$DRIVER"
 	fi
@@ -61,12 +63,15 @@ function bind_device {
 	if [[ -n "$DRIVER" ]]; then
 		modprobe $DRIVER
 		if [[ "$DRIVER" = "nvidia" ]]; then
+			modprobe nouveau
 			modprobe nvidia_drm
+			modprobe nvidia_modeset
 		fi
 
 		local VENDOR_ID=$(cat /sys/bus/pci/devices/0000:$DEVICE/vendor)
 		local DEVICE_ID=$(cat /sys/bus/pci/devices/0000:$DEVICE/device)
 		echo $VENDOR_ID $DEVICE_ID > /sys/bus/pci/drivers/$DRIVER/new_id
+		echo "0000:$DEVICE" > /sys/bus/pci/drivers/$DRIVER/bind
 	fi
 }
 export -f bind_device
