@@ -1,0 +1,14 @@
+# Enable intel_iommu:
+/etc/default/grub.cfg -> GRUB_CMDLINE_LINUX_DEFAULT -> intel_iommu=on
+
+# For vfio-hack kernel:
+/etc/default/grub.cfg -> GRUB_CMDLINE_LINUX_DEFAULT -> pcie_acs_override=downstream
+
+# Enable vfio kernel modules:
+/etc/mkinitcpio.conf -> MODULES (vfio vfio_iommu_type1 vfio_pci vfio_virqfd vhost-net)
+
+# How to add hugetables into /etc/fstab:
+/etc/fstab -> hugetlbfs /dev/hugepages hugetlbfs mode=1770,gid=992 0 0
+
+# How to fix if tty screen font is too small after attaching back to host:
+/etc/default/grub.cfg -> GRUB_CMDLINE_LINUX_DEFAULT -> nomodeset

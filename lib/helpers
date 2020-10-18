@@ -1,0 +1,173 @@
+#!/bin/bash
+
+function init_log {
+	exec 3>/dev/tty
+	exec 4>/dev/tty
+}
+export -f init_log
+
+function ia_log {
+	echo >&3 "$@"
+}
+export -f ia_log
+
+function log {
+	echo >&2 "$@"
+}
+export -f log
+
+function redirect_log {
+	local DEST=$1
+	exec 4>"$DEST"
+}
+export -f redirect_log
+
+function redirect_stderr {
+	local DEST=$1
+	exec 2>"$DEST"
+	echo >&2 ""
+}
+export -f redirect_stderr
+
+function unbind_driver {
+	local DRIVER=$1
+
+	if [[ -n "$DRIVER" ]]; then
+		log "Unbinding driver $DRIVER."
+		if [[ "$DRIVER" = "nvidia" ]]; then
+			modprobe -r nvidia_drm
+		fi
+		modprobe -r "$DRIVER"
+	fi
+}
+export -f unbind_driver
+
+function bind_device {
+	local DEVICE=$1
+	local DRIVER=$2
+
+	DEVICE_DIR=/sys/bus/pci/devices/"0000:$DEVICE"
+
+	if [[ -n "$DEVICE" ]] && [[ -n "$DRIVER" ]]; then
+		log "Binding device $DEVICE to driver $DRIVER."
+	else
+		log "Unbinding device $DEVICE."
+	fi
+
+	if [[ -e $DEVICE_DIR/driver ]]; then
+		echo "0000:$DEVICE" > $DEVICE_DIR/driver/unbind
+	fi
+
+	if [[ -n "$DRIVER" ]]; then
+		modprobe $DRIVER
+		if [[ "$DRIVER" = "nvidia" ]]; then
+			modprobe nvidia_drm
+		fi
+
+		local VENDOR_ID=$(cat /sys/bus/pci/devices/0000:$DEVICE/vendor)
+		local DEVICE_ID=$(cat /sys/bus/pci/devices/0000:$DEVICE/device)
+		echo $VENDOR_ID $DEVICE_ID > /sys/bus/pci/drivers/$DRIVER/new_id
+	fi
+}
+export -f bind_device
+
+function get_device_driver {
+	local DEVICE=$1
+	local DRIVER=""
+	if [[ -n "$DEVICE" ]]; then
+		log "Getting driver for device $DEVICE."
+		DRIVER=$(lspci -vmmk -s $DEVICE | grep Driver: | cut -f 2)
+		log "Device $DEVICE driver: $DRIVER."
+	fi
+	echo "$DRIVER"
+}
+export -f get_device_driver
+
+function get_device_subsystem {
+	local DEVICE=$1
+	if [[ -n "$DEVICE" ]]; then
+		log "Getting subsystem for device $DEVICE."
+		SUBSYSTEM_DEVICE=$(lspci -vmmk -s $DEVICE | grep SDevice: | cut -f 2)
+		log "Device $DEVICE subsystem: $SUBSYSTEM_DEVICE."
+	fi
+	echo "$SUBSYSTEM_DEVICE"
+}
+export -f get_device_subsystem
+
+function prompt_pci_device_list {
+	local DEVICE_TYPE=$1
+
+	local DEVICE_NUM=0
+	declare -A DEVICES
+
+	ia_log ""
+	ia_log "List of $DEVICE_TYPE devices:"
+	ia_log ""
+
+	while read -r DEVICE; do
+		ia_log "$DEVICE_NUM - $DEVICE"
+		DEVICES[$DEVICE_NUM]=$DEVICE
+		DEVICE_NUM=$((DEVICE_NUM + 1))
+	done <<< $(lspci | grep "$DEVICE_TYPE")
+
+	ia_log "Pick $DEVICE_TYPE device: "
+	read -r INPUT
+
+	if [[ -n "$INPUT" ]]; then
+		if [[ -n "${DEVICES[$INPUT]}" ]]; then
+			DEVICE_LINE=${DEVICES[$INPUT]}
+			DEVICE=$(echo $DEVICE_LINE | cut -d ' ' -f 1)
+
+			ia_log "Device: $DEVICE"
+
+			echo "$DEVICE"
+		fi
+	fi
+}
+export -f prompt_pci_device_list
+
+function prompt_usb_device_list {
+	local DEVICE_NUM=0
+	declare -A DEVICES
+
+	ia_log ""
+	ia_log "List of USB devices:"
+	ia_log ""
+
+	while read -r DEVICE; do
+		ia_log "$DEVICE_NUM - $DEVICE"
+		DEVICES[$DEVICE_NUM]=$DEVICE
+		DEVICE_NUM=$((DEVICE_NUM + 1))
+	done <<< $(lsusb)
+
+	ia_log "Pick USB device: "
+	read -r INPUT
+
+	if [[ -n "$INPUT" ]]; then
+		if [[ -n "${DEVICES[$INPUT]}" ]]; then
+			DEVICE_LINE=${DEVICES[$INPUT]}
+			DEVICE=$(echo $DEVICE_LINE | cut -d ' ' -f 6)
+
+			ia_log "Device: $DEVICE"
+
+			echo "$DEVICE"
+		fi
+	fi
+}
+export -f prompt_usb_device_list
+
+function attach_console {
+	log "Attach console."
+	echo 1 > /sys/class/vtconsole/vtcon0/bind
+	echo 1 > /sys/class/vtconsole/vtcon1/bind
+	echo efi-framebuffer.0 > /sys/bus/platform/drivers/efi-framebuffer/bind
+}
+export -f attach_console
+
+function detach_console {
+	log "Detach console."
+	echo 0 > /sys/class/vtconsole/vtcon0/bind
+	echo 0 > /sys/class/vtconsole/vtcon1/bind
+	echo efi-framebuffer.0 > /sys/bus/platform/drivers/efi-framebuffer/unbind
+}
+export -f detach_console
