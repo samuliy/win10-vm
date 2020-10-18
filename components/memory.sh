@@ -1,9 +1,17 @@
 #!/bin/bash
 
-MEMORY="
+MEMORY_CONF="
 	-m 12288
 "
 
-echo $MEMORY
+if [[ -n "$HUGEPAGES" ]]; then
+	$MEMORY_CONF="
+		$MEMORY_CONF
+		-mem-prealloc
+		-mem-path /dev/hugepages
+	"
+fi
 
-unset MEMORY
+echo $MEMORY_CONF
+
+unset MEMORY_CONF
