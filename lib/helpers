@@ -102,7 +102,7 @@ function prompt_pci_device_list {
 		ia_log "$DEVICE_NUM - $DEVICE"
 		DEVICES[$DEVICE_NUM]=$DEVICE
 		DEVICE_NUM=$((DEVICE_NUM + 1))
-	done <<< $(lspci | grep "$DEVICE_TYPE")
+	done <<< $(lspci | sort -k 2 | grep "$DEVICE_TYPE")
 
 	ia_log "Pick PCI device: "
 	read -r INPUT
