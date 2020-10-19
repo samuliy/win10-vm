@@ -1,5 +1,5 @@
 *.log
-cd-drive-install/*
-!cd-drive-install/.placeholder
-cd-drive/*
-!cd-drive/.placeholder
+components/cd-drive-install/*
+!components/cd-drive-install/.placeholder
+components/cd-drive/*
+!components/cd-drive/.placeholder

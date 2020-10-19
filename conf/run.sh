@@ -10,7 +10,7 @@ if [[ -n "$INSTALL" ]]; then
 	INSTALL_DISK_BOOT_INDEX=1
 fi
 
-for ISO in $SCRIPT_DIR/../cd-drive-install/*.iso ; do
+for ISO in $SCRIPT_DIR/../components/cd-drive-install/*.iso ; do
 	if [[ -z "$CD_BOOT_DEVICE_CREATED" ]]; then
 		CD_DRIVES="
 			$CD_DRIVES
@@ -25,7 +25,7 @@ for ISO in $SCRIPT_DIR/../cd-drive-install/*.iso ; do
 	fi
 done
 
-for ISO in $SCRIPT_DIR/../cd-drive/*.iso ; do
+for ISO in $SCRIPT_DIR/../components/cd-drive/*.iso ; do
 	CD_DRIVES="
 		$CD_DRIVES
 		-drive file=$ISO,index=$CD_INDEX,media=cdrom
