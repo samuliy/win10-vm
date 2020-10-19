@@ -5,7 +5,7 @@ MEMORY_CONF="
 "
 
 if [[ -n "$HUGEPAGES" ]]; then
-	$MEMORY_CONF="
+	MEMORY_CONF="
 		$MEMORY_CONF
 		-mem-prealloc
 		-mem-path /dev/hugepages
