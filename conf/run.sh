@@ -38,7 +38,11 @@ MACHINE="
 "
 
 CONF="
+-k fi
+-nodefaults
+-no-user-config
 -enable-kvm
+-name win10,debug-threads=on
 -watchdog-action none
 -serial none
 -parallel none
@@ -46,6 +50,7 @@ CONF="
 -rtc base=localtime,driftfix=slew
 -no-hpet
 -usb
+-overcommit mem-lock=on
 $MACHINE
 $( $SCRIPT_DIR/../components/cpu.sh )
 $( $SCRIPT_DIR/../components/hard-drive.sh )
@@ -56,3 +61,4 @@ $CD_DRIVES
 "
 
 echo $CONF
+
