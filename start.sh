@@ -62,7 +62,7 @@ fi
 CONF=$( $SCRIPT_DIR/conf/run.sh )
 CMD="qemu-system-x86_64 $CONF"
 log "$CMD"
-eval "$CMD"
+$CMD
 
 if [[ -n "$PCI_PASSTHROUGH" ]]; then
 	source $SCRIPT_DIR/restore/pci.sh
