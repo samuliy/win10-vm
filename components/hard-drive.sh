@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HARD_DRIVE_UUID=/dev/sdd
+HARD_DRIVE_DEV=/dev/sdd
 HARD_DRIVE_BOOT_INDEX=1
 if [[ -n "$INSTALL" ]]; then
 	HARD_DRIVE_BOOT_INDEX=2
