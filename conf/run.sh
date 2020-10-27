@@ -37,6 +37,12 @@ MACHINE="
 -machine q35,accel=kvm,kernel_irqchip=on,mem-merge=off
 "
 
+OVMF_DIR=/usr/share/ovmf/x64
+OVMF_VARS_PATH=$SCRIPT_DIR/../OVMF_VARS.fd
+if [[ ! -f $OVMF_VARS_PATH ]]; then
+	cp $OVMF_DIR/OVMF_VARS.fd $OVMF_VARS_PATH
+fi
+
 CONF="
 -k fi
 -nodefaults
@@ -46,7 +52,8 @@ CONF="
 -watchdog-action none
 -serial none
 -parallel none
--bios /usr/share/ovmf/x64/OVMF_CODE.fd
+-drive if=pflash,format=raw,readonly,file=$OVMF_DIR/OVMF_CODE.fd
+-drive if=pflash,format=raw,file=$OVMF_VARS_PATH
 -rtc base=localtime,driftfix=slew
 -no-hpet
 -usb
