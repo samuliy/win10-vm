@@ -3,3 +3,4 @@ components/cd-drive-install/*
 !components/cd-drive-install/.placeholder
 components/cd-drive/*
 !components/cd-drive/.placeholder
+OVMF_VARS.fd
