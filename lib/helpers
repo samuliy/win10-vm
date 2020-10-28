@@ -12,7 +12,7 @@ function ia_log {
 export -f ia_log
 
 function log {
-	echo >&2 "$@"
+	echo >&2 "$(date) $@"
 }
 export -f log
 
