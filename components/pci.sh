@@ -30,11 +30,16 @@ else
 	fi
 
 	VGA_DEVICE=""
+	NET_DEVICE=""
 	for DEVICE in $PCI_DEVICES; do
 		if lspci | grep $DEVICE | grep -q VGA ; then
 			# GPU passthrough
 			VGA_DEVICE=$DEVICE
 			detach_console
+		elif lspci | grep $DEVICE | grep -q Ethernet ; then
+			# Net device passthrough
+			# Disable net device emulation
+			echo "-net none"
 		fi
 	done
 
