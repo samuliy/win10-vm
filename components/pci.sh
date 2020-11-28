@@ -53,7 +53,7 @@ else
 		done
 
 		# Add PCIe root bus device for GPU passthrough
-		echo "-device ioh3420,id=root_port1,chassis=0,slot=0,bus=pcie.0"
+		echo "-device pcie-root-port,id=gpu_pcie_root_port,multifunction=on,chassis=1"
 		# Disable VGA and graphical UI
 		echo "-vga none -nographic"
 	fi
@@ -66,7 +66,7 @@ else
 		if [[ $DEVICE = $VGA_DEVICE ]]; then
 			# GPU passthrough
 			DEVICE_CONFIG="
-				$DEVICE_CONFIG,multifunction=on,bus=root_port1,addr=0x00
+				$DEVICE_CONFIG,multifunction=on,bus=gpu_pcie_root_port,addr=0x00
 			"
 		fi
 
@@ -75,7 +75,7 @@ else
 			if [[ $DEVICE = $ADDT_VGA_DEVICE ]]; then
 				# Add all the GPU functions to the same root bus device
 				DEVICE_CONFIG="
-					$DEVICE_CONFIG,bus=root_port1,addr=0x00.$ADDT_VGA_DEVICE_ADDR
+					$DEVICE_CONFIG,bus=gpu_pcie_root_port,addr=0x00.$ADDT_VGA_DEVICE_ADDR
 				"
 			fi
 			ADDT_VGA_DEVICE_ADDR=$(($ADDT_VGA_DEVICE_ADDR+1))
