@@ -27,7 +27,12 @@ for ARG; do
 		--hugepages)
 			log "Using Hugepages."
 			export HUGEPAGES=1
-			export MEM_AMOUNT=$((13*1024))
+			export MEM_AMOUNT=$((12*1024))
+			export MEM_AMOUNT_B=$((MEM_AMOUNT*1024))
+		;;
+		--cpu-pinning)
+			log "Using CPU pinning."
+			export CPU_PINNING=1
 		;;
 	esac
 done
@@ -61,6 +66,7 @@ if [[ -n "$HUGEPAGES" ]]; then
 	# Assign hugepages
 	echo "never" > /sys/kernel/mm/transparent_hugepage/enabled
 	sysctl -w vm.nr_hugepages=$((MEM_AMOUNT/2))
+	sysctl -w kernel.shmmax=$((MEM_AMOUNT_B/2))
 
 	log "Hugepages set up."
 fi
@@ -72,10 +78,10 @@ fi
 
 # PCI
 if [[ -n "$PCI_PASSTHROUGH" ]]; then
-	modprobe -r vfio
 	modprobe -r vfio-pci
 	modprobe -r vfio_iommu_type1
 	modprobe -r vfio_virqfd
+	modprobe -r vfio
 	modprobe -r vhost-net
 
 	modprobe vfio || exit 2
@@ -99,28 +105,23 @@ log "$CMD"
 cpupower frequency-set -g performance
 
 $CMD &
-PROC_PID=$!
+export QEMU_PROC_PID=$!
 
-QEMU_NICE=-10
-QEMU_CHRT_PRI=1
+if [[ -n "$CPU_PINNING" ]]; then
+	# Give QEMU some time to start up.
+	SECONDS=0
+	while ps -p $QEMU_PROC_PID > /dev/null; do
+		sleep 1
+		if [[ $SECONDS -gt 20 ]]; then
+			# Set thread priorities
+			log "Enabling CPU pinning."
+			$SCRIPT_DIR/cpu-pin/enable.sh
+			break
+		fi
+	done
+fi
 
-SECONDS=0
-while ps -p $PROC_PID ; do
-	sleep 1
-	if [[ $SECONDS -gt 60 ]]; then
-		# Set thread priorities
-
-		for THREAD_PID in $(ps -T -H -o 'tid=' -o 'comm=' $PROC_PID | grep "qemu\|worker\|CPU\|IO" | awk '{ print $1 }'); do
-			log "Found thread with pid $THREAD_PID, setting nice to $QEMU_NICE."
-			renice -n $QEMU_NICE -p $THREAD_PID
-			#chrt --rr --pid $QEMU_CHRT_PRI $THREAD_PID
-		done
-
-		break
-	fi
-done
-
-wait $PROC_PID
+wait $QEMU_PROC_PID
 
 cpupower frequency-set -g powersave
 
@@ -140,4 +141,9 @@ if [[ -n "$HUGEPAGES" ]]; then
 	log "Dirty ratio set to $(cat /proc/sys/vm/dirty_ratio)."
 	log "Dirty background ratio set to $(cat /proc/sys/vm/dirty_background_ratio)."
 	log "Swappiness is now set to $(cat /proc/sys/vm/swappiness)."
+fi
+
+if [[ -n "$CPU_PINNING" ]]; then
+	log "Disabling CPU pinning."
+	$SCRIPT_DIR/cpu-pin/disable.sh
 fi
