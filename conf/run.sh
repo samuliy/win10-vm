@@ -34,7 +34,7 @@ for ISO in $SCRIPT_DIR/../components/cd-drive/*.iso ; do
 done
 
 MACHINE="
--machine q35,accel=kvm,kernel_irqchip=on,mem-merge=off
+-machine pc,accel=kvm,kernel_irqchip=on,mem-merge=off
 "
 
 OVMF_DIR=/usr/share/ovmf/x64
