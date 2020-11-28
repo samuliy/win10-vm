@@ -1,6 +1,7 @@
 #!/bin/bash
 
-HARD_DRIVE_DEV=/dev/sdd
+BOOT_PARTITION_UUID=8428-AFC9
+HARD_DRIVE_DEV=$(readlink -f /dev/disk/by-uuid/$BOOT_PARTITION_UUID | grep -Po "[a-z/]+")
 HARD_DRIVE_BOOT_INDEX=1
 HARD_DRIVE_INDEX=2
 if [[ -n "$INSTALL" ]]; then
@@ -8,14 +9,23 @@ if [[ -n "$INSTALL" ]]; then
 fi
 
 HARD_DRIVE="
-	-drive file=$HARD_DRIVE_DEV,index=$HARD_DRIVE_INDEX,format=raw,if=none,id=drive-virtio-disk0,cache=none,aio=native
-	-device virtio-blk-pci,scsi=off,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=$HARD_DRIVE_BOOT_INDEX
+	-drive file=$HARD_DRIVE_DEV,index=$HARD_DRIVE_INDEX,format=raw,if=none,id=drive0,cache=none,aio=native
+	-device virtio-scsi-pci,id=scsi0,num_queues=1
+	-device scsi-hd,drive=drive0,bootindex=$HARD_DRIVE_BOOT_INDEX
+"
+
+HARD_DRIVE="
+	-device pcie-root-port,multifunction=on,id=hd_pcie_root_port
+	-object iothread,id=io1
+	-drive file=$HARD_DRIVE_DEV,index=$HARD_DRIVE_INDEX,format=raw,if=none,id=drive0,cache=none,aio=threads
+	-device virtio-scsi-pci,id=scsi0,num_queues=1,bus=hd_pcie_root_port,iothread=io1,num_queues=4
+	-device scsi-hd,drive=drive0,bootindex=$HARD_DRIVE_BOOT_INDEX
 "
 
 # Standard BLK:
 #
-# -drive file=$HARD_DRIVE_DEV,index=$HARD_DRIVE_INDEX,format=raw,if=none,id=drive-virtio-disk0,cache=none,aio=native
-# -device virtio-blk-pci,scsi=off,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=$HARD_DRIVE_BOOT_INDEX
+# -drive file=$HARD_DRIVE_DEV,index=$HARD_DRIVE_INDEX,format=raw,if=none,id=drive0,cache=none,aio=native
+# -device virtio-blk-pci,scsi=off,drive=drive0,id=virtio-disk0,bootindex=$HARD_DRIVE_BOOT_INDEX
 
 # Standard BLK with IOThread:
 #
@@ -38,4 +48,4 @@ HARD_DRIVE="
 
 echo $HARD_DRIVE
 
-unset HARD_DRIVE HARD_DRIVE_DEV HARD_DRIVE_INDEX HARD_DRIVE_BOOT_INDEX
+unset HARD_DRIVE HARD_DRIVE_DEV HARD_DRIVE_INDEX HARD_DRIVE_BOOT_INDEX BOOT_PARTITION_UUID
